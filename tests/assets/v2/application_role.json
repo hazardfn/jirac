@@ -1,0 +1,19 @@
+{
+    "key": "jira-software",
+    "groups": [
+        "jira-software-users",
+        "jira-testers"
+    ],
+    "name": "JIRA Software",
+    "defaultGroups": [
+        "jira-software-users"
+    ],
+    "selectedByDefault": false,
+    "defined": false,
+    "numberOfSeats": 10,
+    "remainingSeats": 5,
+    "userCount": 5,
+    "userCountDescription": "5 developers",
+    "hasUnlimitedSeats": false,
+    "platform": false
+}
