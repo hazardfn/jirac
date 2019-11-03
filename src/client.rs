@@ -4,9 +4,10 @@
 // Use
 // ============================================================================
 use crate::credentials::Credentials;
-use crate::Result;
-use reqwest::header::CONTENT_TYPE;
-use reqwest::header::{HeaderMap, HeaderValue};
+use crate::options::Options;
+use crate::Resp;
+use crate::Response;
+use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Method;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -22,11 +23,13 @@ pub struct Client {
     pub host: String,
     pub client: reqwest::Client,
     pub credentials: Credentials,
+    pub headers: HeaderMap,
+    pub query: HashMap<String, String>,
 }
 
 impl Client {
     /// Creates a new instance of the JIRA client
-    pub fn new<H>(host: H, credentials: Credentials) -> Client
+    pub fn new<H>(host: H, credentials: Credentials, headers: Option<HeaderMap>) -> Client
     where
         H: Into<String>,
     {
@@ -34,93 +37,94 @@ impl Client {
             host: host.into(),
             client: reqwest::Client::new(),
             credentials,
+            headers: if let Some(h) = headers {
+                h
+            } else {
+                HeaderMap::new()
+            },
+            query: HashMap::new(),
         }
     }
 
-    pub fn put<S, D>(
-        &self,
-        api_name: &str,
-        version: &str,
-        endpoint: &str,
-        query: Option<HashMap<String, String>>,
-        headers: Option<HeaderMap>,
-        body: S,
-    ) -> Result<D>
+    /// Add request headers before sending your request
+    pub fn add_headers(self, headers: HashMap<&'static str, String>) -> Self {
+        let mut s = self.clone();
+        let mut h = self.headers;
+
+        h = headers.iter().fold(h, |mut acc, (k, v)| {
+            acc.insert(*k, HeaderValue::from_str(v).unwrap());
+            acc
+        });
+
+        s.headers = h;
+        s
+    }
+
+    /// Add a single header given a string value
+    pub fn add_header(mut self, header: &'static str, value: String) -> Self {
+        self.headers
+            .insert(header, HeaderValue::from_str(&value).unwrap());
+
+        self
+    }
+
+    /// Add query string arguments before sending your request
+    pub fn add_query(mut self, query: HashMap<String, String>) -> Self {
+        let mut q = self.query;
+        q.extend(query);
+        self.query = q;
+
+        self
+    }
+
+    /// Unpacks options into a HashMap<String, String> allowing them to be easily
+    /// represented in a query string.
+    pub fn unpack_options(opts: Vec<&dyn Options>) -> HashMap<String, String> {
+        opts.iter().fold(HashMap::new(), |acc, o| {
+            let mut h = acc;
+            h.extend(o.to_query());
+            h
+        })
+    }
+
+    /// Unpacks a HashMap<String, String> into a query string.
+    pub fn unpack_query(query: &HashMap<String, String>) -> String {
+        let mut ret = query.iter().fold(String::from("?"), |acc, (k, v)| {
+            format!("{}{}={}&", acc, k, v)
+        });
+        ret.pop();
+        ret
+    }
+
+    pub fn put<S, D>(&self, url: &str, body: S) -> Response<D>
     where
         D: DeserializeOwned,
         S: Serialize,
     {
         let data = serde_json::to_string::<S>(&body)?;
 
-        self.request(
-            Method::PUT,
-            api_name,
-            version,
-            endpoint,
-            query,
-            headers,
-            Some(data.into_bytes()),
-        )
+        self.request(Method::PUT, url, Some(data.into_bytes()))
     }
 
-    pub fn get<D>(
-        &self,
-        api_name: &str,
-        version: &str,
-        endpoint: &str,
-        query: Option<HashMap<String, String>>,
-        headers: Option<HeaderMap>,
-    ) -> Result<D>
+    pub fn get<D>(&self, url: &str) -> Response<D>
     where
         D: DeserializeOwned,
     {
-        self.request(
-            Method::GET,
-            api_name,
-            version,
-            endpoint,
-            query,
-            headers,
-            None,
-        )
+        self.request(Method::GET, url, None)
     }
 
-    pub fn request<D>(
-        &self,
-        method: Method,
-        api_name: &str,
-        version: &str,
-        endpoint: &str,
-        query: Option<HashMap<String, String>>,
-        headers: Option<HeaderMap>,
-        body: Option<Vec<u8>>,
-    ) -> Result<D>
+    pub fn request<D>(&self, method: Method, url: &str, body: Option<Vec<u8>>) -> Response<D>
     where
         D: DeserializeOwned,
     {
-        let query = if let Some(q) = query {
-            unpack_query(q)
-        } else {
-            String::from("")
-        };
-
-        let headers = if let Some(mut h) = headers {
-            h.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"))
-                .unwrap();
-            h
-        } else {
-            HeaderMap::new()
-        };
-
-        let url = format!(
-            "{}/rest/{}/{}/{}{}",
-            self.host, api_name, version, endpoint, query
-        );
+        let query = Client::unpack_query(&self.query);
+        let url = format!("{}/rest/{}{}", self.host, url, query);
         let req = self.client.request(method, &url);
         let builder = match self.credentials {
             Credentials::Basic(ref user, ref pass) => req
                 .basic_auth(user.to_owned(), Some(pass.to_owned()))
-                .headers(headers),
+                .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .headers(self.headers.clone()),
         };
 
         let mut res = match body {
@@ -131,20 +135,11 @@ impl Client {
         let body = res.text()?;
         let data = if body == "" { "null" } else { &body };
 
-        Ok(serde_json::from_str::<D>(data)?)
+        Ok(Resp {
+            data: serde_json::from_str::<D>(data)?,
+            headers: res.headers().clone(),
+        })
     }
-}
-
-// ============================================================================
-// Private
-// ============================================================================
-fn unpack_query(query: HashMap<String, String>) -> String {
-    let mut ret = query.iter().fold(String::from("?"), |acc, (k, v)| {
-        format!("{}{}={}&", acc, k, v)
-    });
-
-    ret.pop();
-    ret
 }
 
 // ============================================================================
@@ -160,7 +155,7 @@ mod tests {
         query.insert(String::from("q"), String::from("true"));
         query.insert(String::from("h"), String::from("other-text"));
 
-        let unpacked = unpack_query(query);
+        let unpacked = Client::unpack_query(&query);
 
         assert!(&unpacked.contains("q=true"));
         assert!(&unpacked.contains("h=other-text"));
@@ -169,6 +164,6 @@ mod tests {
     #[test]
     fn test_empty_hashmap_empty_query() {
         let query: HashMap<String, String> = HashMap::new();
-        assert_eq!(unpack_query(query), "");
+        assert_eq!(Client::unpack_query(&query), "");
     }
 }

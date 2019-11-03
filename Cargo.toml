@@ -15,3 +15,6 @@ reqwest = "0.9"
 serde = "1.0"
 serde_json = "1.0"
 readonly = "0.1"
+
+[dev-dependencies]
+mockito = "0.21"

@@ -4,9 +4,10 @@
 // Use
 // ============================================================================
 use crate::client::Client;
+use crate::options::Options;
 use crate::v2::pagination::Pagination;
 use crate::v2::user::User;
-use crate::Result;
+use crate::Response;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -16,6 +17,25 @@ use std::collections::HashMap;
 pub struct GroupOptions {
     /// If true a get request will return inactive users in the list
     include_inactive_users: bool,
+}
+
+impl Options for GroupOptions {
+    fn to_query(&self) -> HashMap<String, String> {
+        let mut h = HashMap::new();
+        h.insert(
+            String::from("includeInactiveUsers"),
+            self.include_inactive_users.to_string(),
+        );
+        h
+    }
+}
+
+impl Default for GroupOptions {
+    fn default() -> Self {
+        GroupOptions {
+            include_inactive_users: false,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,26 +64,18 @@ impl Group {
         name: G,
         opts: Option<GroupOptions>,
         page: Option<Pagination>,
-    ) -> Result<Group>
+    ) -> Response<Group>
     where
         G: Into<String>,
     {
-        let mut query: HashMap<String, String> = HashMap::new();
+        let mut c = c.clone();
+        let mut query =
+            Client::unpack_options(vec![&opts.unwrap_or_default(), &page.unwrap_or_default()]);
+
         query.insert("groupname".to_string(), name.into());
 
-        if let Some(o) = opts {
-            query.insert(
-                "includeInactiveUsers".to_string(),
-                o.include_inactive_users.to_string(),
-            );
-        }
-
-        if let Some(p) = page {
-            query.insert("startAt".to_string(), p.start_at.to_string());
-            query.insert("maxResults".to_string(), p.max_results.to_string());
-        }
-
-        c.get("api", "2", "group/member", Some(query), None)
+        c = c.add_query(query);
+        c.get("api/2/group/member")
     }
 }
 

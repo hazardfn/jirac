@@ -4,8 +4,7 @@
 // Use
 // ============================================================================
 use crate::client::Client;
-use crate::reqwest::header::{HeaderMap, HeaderValue};
-use crate::Result;
+use crate::Response;
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
@@ -84,19 +83,19 @@ pub struct ApplicationRole {
 impl ApplicationRole {
     /// Fetches a single role by key. For more information see the atlassian docs:
     /// https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#api/2/applicationrole-get
-    pub fn from_key<K>(c: &Client, key: K) -> Result<Self>
+    pub fn from_key<K>(c: &Client, key: K) -> Response<Self>
     where
         K: Into<String>,
     {
-        let endpoint = format!("applicationrole/{}", key.into());
-        c.get("api", "2", &endpoint, None, None)
+        let endpoint = format!("api/2/applicationrole/{}", key.into());
+        c.get(&endpoint)
     }
 
     /// Fetches all available roles. For more information see the atlassian
     /// docs:
     /// https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#api/2/applicationrole-getAll
-    pub fn all(c: &Client) -> Result<Vec<Self>> {
-        c.get("api", "2", "applicationrole", None, None)
+    pub fn all(c: &Client) -> Response<Vec<Self>> {
+        c.get("api/2/applicationrole")
     }
 
     /// Will bulk update roles given a vector of ApplicationRole. For more
@@ -106,32 +105,29 @@ impl ApplicationRole {
         c: &Client,
         a: Vec<Self>,
         o: Option<ApplicationRoleOptions>,
-    ) -> Result<Vec<Self>> {
-        let headers = if let Some(o) = o {
-            let mut headers = HeaderMap::new();
-            headers.insert("If-Match", HeaderValue::from_str(&o.if_match).unwrap());
-            Some(headers)
-        } else {
-            None
-        };
+    ) -> Response<Vec<Self>> {
+        let mut c = c.clone();
 
-        c.put("api", "2", "applicationrole", None, headers, a)
+        if let Some(o) = o {
+            c = c.add_header("If-Match", o.if_match);
+        }
+
+        c.put("api/2/applicationrole", a)
     }
 
     /// Updates the role with the information currently in the struct. Note
     /// that only certain fields can be updated here as per the API spec, the
     /// others are silently ignored. See docs for more info:
     /// https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#api/2/applicationrole-put
-    pub fn update(&self, c: &Client, o: Option<ApplicationRoleOptions>) -> Result<Self> {
-        let endpoint = format!("applicationrole/{}", self.key);
-        let headers = if let Some(o) = o {
-            let mut headers = HeaderMap::new();
-            headers.insert("If-Match", HeaderValue::from_str(&o.if_match).unwrap());
-            Some(headers)
-        } else {
-            None
-        };
-        c.put("api", "2", &endpoint, None, headers, self)
+    pub fn update(&self, c: &Client, o: Option<ApplicationRoleOptions>) -> Response<Self> {
+        let mut c = c.clone();
+        let endpoint = format!("api/2/applicationrole/{}", self.key);
+
+        if let Some(o) = o {
+            c = c.add_header("If-Match", o.if_match);
+        }
+
+        c.put(&endpoint, self)
     }
 }
 

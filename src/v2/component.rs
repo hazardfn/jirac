@@ -5,7 +5,7 @@
 // ============================================================================
 use crate::client::Client;
 use crate::v2::user::User;
-use crate::Result;
+use crate::Response;
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
@@ -64,12 +64,12 @@ pub struct Component {
 
 impl Component {
     /// Fetches a component by id
-    pub fn from_id<T>(c: &Client, id: T) -> Result<Component>
+    pub fn from_id<T>(c: &Client, id: T) -> Response<Self>
     where
         T: Into<String>,
     {
-        let endpoint = format!("/component/{}", id.into());
-        c.get("api", "2", &endpoint, None, None)
+        let endpoint = format!("api/2/component/{}", id.into());
+        c.get(&endpoint)
     }
 }
 

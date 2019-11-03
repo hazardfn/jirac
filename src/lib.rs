@@ -20,6 +20,7 @@ pub mod v2;
 // Private Modules
 // ============================================================================
 mod errors;
+mod options;
 
 // ============================================================================
 // Use
@@ -27,6 +28,16 @@ mod errors;
 pub use crate::errors::*;
 
 // ============================================================================
+// Public Structures
+// ============================================================================
+/// Represents a response from the API.
+pub struct Resp<D> {
+    pub data: D,
+    pub headers: reqwest::header::HeaderMap,
+}
+
+// ============================================================================
 // Type
 // ============================================================================
 pub type Result<T> = std::result::Result<T, Error>;
+pub type Response<T> = std::result::Result<Resp<T>, Error>;

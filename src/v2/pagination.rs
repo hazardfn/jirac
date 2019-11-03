@@ -4,7 +4,9 @@
 // ============================================================================
 // Use
 // ============================================================================
+use crate::options::Options;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // ============================================================================
 // Public Structures
@@ -41,5 +43,65 @@ impl Pagination {
             total: 0,
             next_link: String::from(""),
         }
+    }
+
+    pub fn next(&self) -> Option<Pagination> {
+        if self.is_last {
+            None
+        } else {
+            Some(Pagination {
+                start_at: self.start_at + self.max_results,
+                max_results: self.max_results,
+                is_last: false,
+                total: 0,
+                next_link: String::from(""),
+            })
+        }
+    }
+}
+
+impl Default for Pagination {
+    fn default() -> Self {
+        Pagination {
+            start_at: 0,
+            max_results: 50,
+            is_last: false,
+            total: 0,
+            next_link: String::from(""),
+        }
+    }
+}
+
+impl Options for Pagination {
+    fn to_query(&self) -> HashMap<String, String> {
+        let mut h = HashMap::new();
+        h.insert(String::from("startAt"), self.start_at.to_string());
+        h.insert(String::from("maxResults"), self.max_results.to_string());
+        h
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next_pagination() {
+        let mut p = Pagination::new(2, 2);
+        p = p.next().unwrap();
+
+        assert_eq!(p.max_results, 2);
+        assert_eq!(p.start_at, 4);
+    }
+
+    #[test]
+    fn test_no_more_pages() {
+        let mut p = Pagination::default();
+        p.is_last = true;
+
+        assert!(p.next().is_none());
     }
 }

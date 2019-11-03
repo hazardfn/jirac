@@ -4,10 +4,11 @@
 // Use
 // ============================================================================
 use crate::client::Client;
+use crate::options::Options;
 use crate::v2::{
     application_role::ApplicationRole, group::Group, item::Item, pagination::Pagination,
 };
-use crate::Result;
+use crate::Response;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::BTreeMap;
@@ -39,6 +40,39 @@ pub struct UserOptions {
 
     /// Include active users in requests.
     include_active: bool,
+}
+
+impl Options for UserOptions {
+    fn to_query(&self) -> HashMap<String, String> {
+        let mut h = HashMap::new();
+        h.insert(
+            String::from("includeInactive"),
+            self.include_inactive.to_string(),
+        );
+        h.insert(
+            String::from("includeActive"),
+            self.include_active.to_string(),
+        );
+        h
+    }
+}
+
+impl UserOptions {
+    pub fn new(include_active: bool, include_inactive: bool) -> Self {
+        UserOptions {
+            include_active,
+            include_inactive,
+        }
+    }
+}
+
+impl Default for UserOptions {
+    fn default() -> Self {
+        UserOptions {
+            include_active: true,
+            include_inactive: false,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -90,52 +124,42 @@ impl User {
         search: S,
         opts: Option<UserOptions>,
         page: Option<Pagination>,
-    ) -> Result<Vec<User>>
+    ) -> Response<Vec<User>>
     where
         S: Into<String>,
     {
-        let mut query: HashMap<String, String> = HashMap::new();
+        let mut query =
+            Client::unpack_options(vec![&opts.unwrap_or_default(), &page.unwrap_or_default()]);
+
         query.insert("username".to_string(), search.into());
 
-        if let Some(o) = opts {
-            query.insert(
-                "includeInactive".to_string(),
-                o.include_inactive.to_string(),
-            );
-
-            query.insert("includeActive".to_string(), o.include_active.to_string());
-        }
-
-        if let Some(p) = page {
-            query.insert("startAt".to_string(), p.start_at.to_string());
-            query.insert("maxResults".to_string(), p.max_results.to_string());
-        }
-
-        c.get("api", "2", "user/search", Some(query), None)
+        c.clone().add_query(query).get("api/2/user/search")
     }
 
     /// Fetches a user by username
-    pub fn from_username<U>(c: &Client, username: U, expand: &[Expand]) -> Result<User>
+    pub fn from_username<U>(c: &Client, username: U, expand: &[Expand]) -> Response<User>
     where
         U: Into<String>,
     {
         let mut query: HashMap<String, String> = HashMap::new();
+
         query.insert("username".to_string(), username.into());
         query.extend(expand_to_hashmap(expand));
 
-        c.get("api", "2", "user", Some(query), None)
+        c.clone().add_query(query).get("api/2/user")
     }
 
     /// Fetches a user by key
-    pub fn from_key<K>(c: &Client, key: K, expand: &[Expand]) -> Result<User>
+    pub fn from_key<K>(c: &Client, key: K, expand: &[Expand]) -> Response<User>
     where
         K: Into<String>,
     {
         let mut query: HashMap<String, String> = HashMap::new();
+
         query.insert("key".to_string(), key.into());
         query.extend(expand_to_hashmap(expand));
 
-        c.get("api", "2", "user", Some(query), None)
+        c.clone().add_query(query).get("api/2/user")
     }
 
     pub fn groups(&self) -> Vec<Group> {
