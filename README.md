@@ -73,7 +73,7 @@ use jirac::Resp;
 
 pub fn main() {
     // Only basic auth is supported at the moment
-    let url = "https://whereisyourjira.com"
+    let url = "https://whereisyourjira.com";
     let credentials = Credentials::new("username", "password").unwrap();
     let client = Client::new(&url, credentials);
 
