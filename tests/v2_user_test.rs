@@ -6,9 +6,10 @@ extern crate jirac;
 // ============================================================================
 // Use
 // ============================================================================
-use jirac::v2::User;
+use jirac::v2::{User, UserExpand};
 use jirac::Client;
 use jirac::Credentials;
+use jirac::Resp;
 use mockito::mock;
 use std::fs;
 
@@ -30,7 +31,11 @@ fn test_get_user() {
     let creds = Credentials::new("test", "test").unwrap();
     let client = Client::new(url, creds);
 
-    let c = User::from_username(&client, "user1", &[]).unwrap();
+    let e = vec![UserExpand::ApplicationRoles, UserExpand::Groups];
+    let Resp {
+        data: user,
+        headers: _h,
+    } = User::from_username(&client, "fred", &e).unwrap();
 
-    assert_eq!(c.data.name, "fred");
+    assert_eq!(user.name, "fred");
 }
