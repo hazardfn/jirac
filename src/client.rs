@@ -3,14 +3,15 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::credentials::Credentials;
-use crate::options::Options;
+use crate::Credentials;
+use crate::Options;
 use crate::Resp;
 use crate::Response;
+use crate::Serialize;
+use crate::{Error, Errors};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use reqwest::Method;
+use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
-use serde::Serialize;
 use std::collections::HashMap;
 
 // ============================================================================
@@ -29,7 +30,7 @@ pub struct Client {
 
 impl Client {
     /// Creates a new instance of the JIRA client
-    pub fn new<H>(host: H, credentials: Credentials, headers: Option<HeaderMap>) -> Client
+    pub fn new<H>(host: H, credentials: Credentials) -> Client
     where
         H: Into<String>,
     {
@@ -37,11 +38,7 @@ impl Client {
             host: host.into(),
             client: reqwest::Client::new(),
             credentials,
-            headers: if let Some(h) = headers {
-                h
-            } else {
-                HeaderMap::new()
-            },
+            headers: HeaderMap::new(),
             query: HashMap::new(),
         }
     }
@@ -103,14 +100,14 @@ impl Client {
     {
         let data = serde_json::to_string::<S>(&body)?;
 
-        self.request(Method::PUT, url, Some(data.into_bytes()))
+        self.request::<D>(Method::PUT, url, Some(data.into_bytes()))
     }
 
     pub fn get<D>(&self, url: &str) -> Response<D>
     where
         D: DeserializeOwned,
     {
-        self.request(Method::GET, url, None)
+        self.request::<D>(Method::GET, url, None)
     }
 
     pub fn request<D>(&self, method: Method, url: &str, body: Option<Vec<u8>>) -> Response<D>
@@ -135,10 +132,21 @@ impl Client {
         let body = res.text()?;
         let data = if body == "" { "null" } else { &body };
 
-        Ok(Resp {
-            data: serde_json::from_str::<D>(data)?,
-            headers: res.headers().clone(),
-        })
+        match res.status() {
+            StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
+            StatusCode::METHOD_NOT_ALLOWED => Err(Error::MethodNotAllowed),
+            StatusCode::NOT_FOUND => Err(Error::NotFound),
+            StatusCode::PRECONDITION_FAILED => Err(Error::PreconditionFailed),
+            StatusCode::FORBIDDEN => Err(Error::Forbidden),
+            client_err if client_err.is_client_error() => Err(Error::Fault {
+                code: res.status(),
+                errors: serde_json::from_str::<Errors>(&body)?,
+            }),
+            _ => Ok(Resp {
+                data: serde_json::from_str::<D>(data)?,
+                headers: res.headers().clone(),
+            }),
+        }
     }
 }
 

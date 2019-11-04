@@ -39,6 +39,10 @@ pub enum Error {
     Fault { code: StatusCode, errors: Errors },
     /// invalid credentials
     Unauthorized,
+    /// Precondition failed
+    PreconditionFailed,
+    /// Forbidden action
+    Forbidden,
     /// HTTP method is not allowed
     MethodNotAllowed,
     /// Page not found
@@ -92,6 +96,8 @@ impl ::std::error::Error for Error {
             IO(ref e) => e.description(),
             Serde(ref e) => e.description(),
             Fault { .. } => "Jira client error",
+            Forbidden => "Forbidden",
+            PreconditionFailed => "PreconditionFailed",
             Unauthorized => "Unauthorized",
             MethodNotAllowed => "MethodNotAllowed",
             NotFound => "NotFound",

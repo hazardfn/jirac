@@ -25,7 +25,11 @@ mod options;
 // ============================================================================
 // Use
 // ============================================================================
+pub use crate::client::*;
+pub use crate::credentials::*;
 pub use crate::errors::*;
+pub use crate::options::*;
+pub use crate::serde::{Deserialize, Serialize};
 
 // ============================================================================
 // Public Structures

@@ -3,12 +3,12 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::client::Client;
-use crate::options::Options;
-use crate::v2::pagination::Pagination;
-use crate::v2::user::User;
+use crate::v2::Pagination;
+use crate::v2::User;
+use crate::Client;
+use crate::Options;
 use crate::Response;
-use serde::{Deserialize, Serialize};
+use crate::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // ============================================================================
@@ -86,5 +86,32 @@ impl std::fmt::Display for Group {
     // This trait requires fmt with this signature
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         writeln!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn test_deserialize_results() {
+        let results =
+            fs::read_to_string("tests/assets/v2/group.json").expect("Unable to read in JSON file");
+        let group: Group = serde_json::from_str(&results).unwrap();
+
+        assert_eq!(group.users.len(), 2);
+        assert!(!group.pagination.is_last);
+        assert_eq!(group.pagination.total, 5);
+        assert_eq!(group.pagination.start_at, 3);
+        assert_eq!(group.pagination.max_results, 2);
+        assert_eq!(group.pagination.next_link, "http://www.example.com/jira/rest/api/2/group/member?groupname=jira-administrators&includeInactiveUsers=false&startAt=4&maxResults=2");
+        assert_eq!(
+        group.self_link,
+        "http://www.example.com/jira/rest/api/2/group/member?groupname=jira-administrators&includeInactiveUsers=false&startAt=2&maxResults=2"
+        );
     }
 }

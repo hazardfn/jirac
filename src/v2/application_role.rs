@@ -3,9 +3,9 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::client::Client;
+use crate::Client;
 use crate::Response;
-use serde::{Deserialize, Serialize};
+use crate::{Deserialize, Serialize};
 
 // ============================================================================
 // Public Structures
@@ -16,6 +16,12 @@ pub struct ApplicationRoleOptions {
     /// Optional: If versionHash is passed through the If-Match header the
     /// request will be rejected if not the same as server
     if_match: String,
+}
+
+impl ApplicationRoleOptions {
+    pub fn new(if_match: String) -> Self {
+        ApplicationRoleOptions { if_match }
+    }
 }
 
 #[readonly::make]
@@ -138,5 +144,34 @@ impl std::fmt::Display for ApplicationRole {
     // This trait requires fmt with this signature
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         writeln!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn test_deserialize_results() {
+        let results = fs::read_to_string("tests/assets/v2/application_role.json")
+            .expect("Unable to read in JSON file");
+        let application_role: ApplicationRole = serde_json::from_str(&results).unwrap();
+
+        assert!(!application_role.platform);
+        assert!(!application_role.has_unlimited_seats);
+        assert_eq!(application_role.user_count_description, "5 developers");
+        assert_eq!(application_role.user_count, 5);
+        assert_eq!(application_role.remaining_seats, 5);
+        assert_eq!(application_role.number_of_seats, 10);
+        assert!(!application_role.defined);
+        assert!(!application_role.selected_by_default);
+        assert_eq!(application_role.default_groups.len(), 1);
+        assert_eq!(application_role.name, "JIRA Software");
+        assert_eq!(application_role.groups.len(), 2);
+        assert_eq!(application_role.key, "jira-software");
     }
 }

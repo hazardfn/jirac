@@ -3,13 +3,11 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::client::Client;
-use crate::options::Options;
-use crate::v2::{
-    application_role::ApplicationRole, group::Group, item::Item, pagination::Pagination,
-};
+use crate::v2::{ApplicationRole, Group, Item, Pagination};
+use crate::Client;
+use crate::Options;
 use crate::Response;
-use serde::{Deserialize, Serialize};
+use crate::{Deserialize, Serialize};
 use serde_json;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -210,6 +208,7 @@ fn expand_to_hashmap(e: &[Expand]) -> HashMap<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn test_expand_to_hashmap() {
@@ -218,5 +217,24 @@ mod tests {
 
         assert!(h.get("expand").unwrap().contains("groups"));
         assert!(h.get("expand").unwrap().contains("applicationRoles"));
+    }
+
+    #[test]
+    fn test_deserialize_results() {
+        let results =
+            fs::read_to_string("tests/assets/v2/user.json").expect("Unable to read in JSON file");
+        let user: User = serde_json::from_str(&results).unwrap();
+        assert_eq!(user.application_roles().len(), 0);
+        assert_eq!(user.groups().len(), 3);
+        assert_eq!(user.timezone, "Australia/Sydney");
+        assert!(user.active);
+        assert_eq!(user.display_name, "Fred F. User");
+        assert_eq!(user.avatar_urls.len(), 4);
+        assert_eq!(user.email_address, "fred@example.com");
+        assert_eq!(user.name, "fred");
+        assert_eq!(
+            user.self_link,
+            "http://www.example.com/jira/rest/api/2/user?username=fred"
+        );
     }
 }

@@ -6,28 +6,31 @@ extern crate jirac;
 // ============================================================================
 // Use
 // ============================================================================
-use jirac::v2::user::User;
+use jirac::v2::User;
+use jirac::Client;
+use jirac::Credentials;
+use mockito::mock;
 use std::fs;
 
 // ============================================================================
 // Tests
 // ============================================================================
 #[test]
-fn test_deserialize_user_results() {
-    let user_results =
+fn test_get_user() {
+    let result =
         fs::read_to_string("tests/assets/v2/user.json").expect("Unable to read in JSON file");
-    let user: User = serde_json::from_str(&user_results).unwrap();
 
-    assert_eq!(user.application_roles().len(), 0);
-    assert_eq!(user.groups().len(), 3);
-    assert_eq!(user.timezone, "Australia/Sydney");
-    assert!(user.active);
-    assert_eq!(user.display_name, "Fred F. User");
-    assert_eq!(user.avatar_urls.len(), 4);
-    assert_eq!(user.email_address, "fred@example.com");
-    assert_eq!(user.name, "fred");
-    assert_eq!(
-        user.self_link,
-        "http://www.example.com/jira/rest/api/2/user?username=fred"
-    );
+    let _m = mock("GET", "/rest/api/2/user")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(result)
+        .create();
+
+    let url = &mockito::server_url();
+    let creds = Credentials::new("test", "test").unwrap();
+    let client = Client::new(url, creds);
+
+    let c = User::from_username(&client, "user1", &[]).unwrap();
+
+    assert_eq!(c.data.name, "fred");
 }
