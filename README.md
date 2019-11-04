@@ -65,7 +65,7 @@ Using JiraC is hopefully fairly intuitive (even in its nerfed state), I have pro
 
 Simply add the following to your `lib.rs`/`main.rs`:
 
-```
+```rust
 use jirac::Client;
 use jirac::Credentials;
 use jirac::v2::{UserExpand, User};
