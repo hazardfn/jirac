@@ -103,6 +103,16 @@ impl Client {
         self.request::<D>(Method::PUT, url, Some(data.into_bytes()))
     }
 
+    pub fn post<S, D>(&self, url: &str, body: S) -> Response<D>
+    where
+        D: DeserializeOwned,
+        S: Serialize,
+    {
+        let data = serde_json::to_string::<S>(&body)?;
+
+        self.request::<D>(Method::POST, url, Some(data.into_bytes()))
+    }
+
     pub fn get<D>(&self, url: &str) -> Response<D>
     where
         D: DeserializeOwned,

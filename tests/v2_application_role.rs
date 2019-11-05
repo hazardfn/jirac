@@ -174,3 +174,25 @@ fn test_put_with_key_precondition_failed() {
         _ => assert!(false),
     };
 }
+
+#[test]
+fn test_put_with_key_forbidden() {
+    let result = fs::read_to_string("tests/assets/v2/application_role.json")
+        .expect("Unable to read in JSON file");
+
+    let a: ApplicationRole = serde_json::from_str(&result).unwrap();
+
+    let _m = mock("PUT", "/rest/api/2/applicationrole/jira-software")
+        .with_status(403)
+        .with_header("content-type", "application/json")
+        .create();
+
+    let url = &mockito::server_url();
+    let creds = Credentials::new("test", "test").unwrap();
+    let client = Client::new(url, creds);
+
+    match a.update(&client, None) {
+        Err(Error::Forbidden) => assert!(true),
+        _ => assert!(false),
+    };
+}
