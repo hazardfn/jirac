@@ -35,7 +35,7 @@ fn test_get_user() {
     let Resp {
         data: user,
         headers: _h,
-    } = User::from_username(&client, "fred", &e).unwrap();
+    } = User::from_username(&client, "fred", e).unwrap();
 
     assert_eq!(user.name, "fred");
 }

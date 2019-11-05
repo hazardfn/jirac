@@ -79,7 +79,7 @@ pub fn main() {
 
     // Let's expand all the fields for fun
     let e = vec![UserExpand::ApplicationRoles, UserExpand::Groups];
-    let Resp{data: user, headers: _h} = User::from_username(&client, "username", &e).unwrap();
+    let Resp{data: user, headers: _h} = User::from_username(&client, "username", e).unwrap();
     println("{}", user);
 }
 ```

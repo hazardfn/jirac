@@ -135,7 +135,7 @@ impl User {
     }
 
     /// Fetches a user by username
-    pub fn from_username<U>(c: &Client, username: U, expand: &[UserExpand]) -> Response<User>
+    pub fn from_username<U>(c: &Client, username: U, expand: Vec<UserExpand>) -> Response<User>
     where
         U: Into<String>,
     {
@@ -148,7 +148,7 @@ impl User {
     }
 
     /// Fetches a user by key
-    pub fn from_key<K>(c: &Client, key: K, expand: &[UserExpand]) -> Response<User>
+    pub fn from_key<K>(c: &Client, key: K, expand: Vec<UserExpand>) -> Response<User>
     where
         K: Into<String>,
     {
@@ -190,7 +190,7 @@ impl std::fmt::Display for User {
 // ============================================================================
 // Private
 // ============================================================================
-fn expand_to_hashmap(e: &[UserExpand]) -> HashMap<String, String> {
+fn expand_to_hashmap(e: Vec<UserExpand>) -> HashMap<String, String> {
     let mut res: HashMap<String, String> = HashMap::new();
     let mut value = e.iter().fold(String::from(""), |acc, e| {
         format!("{}{},", acc, e.to_string())
@@ -213,7 +213,7 @@ mod tests {
     #[test]
     fn test_expand_to_hashmap() {
         let e = vec![UserExpand::ApplicationRoles, UserExpand::Groups];
-        let h = expand_to_hashmap(&e);
+        let h = expand_to_hashmap(e);
 
         assert!(h.get("expand").unwrap().contains("groups"));
         assert!(h.get("expand").unwrap().contains("applicationRoles"));
