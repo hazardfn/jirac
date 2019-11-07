@@ -63,7 +63,9 @@ pub struct Component {
 }
 
 impl Component {
-    /// Fetches a component by id
+    /// Fetches a single component by id, for more information consult the api
+    /// docs:
+    /// https://docs.atlassian.com/software/jira/docs/api/REST/8.2.6/#api/2/component-getComponent
     pub fn from_id<T>(c: &Client, id: T) -> Response<Self>
     where
         T: Into<String>,

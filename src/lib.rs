@@ -4,7 +4,6 @@
 // ============================================================================
 // External Crates
 // ============================================================================
-extern crate readonly;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;

@@ -12,3 +12,7 @@ use std::collections::HashMap;
 pub trait Options {
     fn to_query(&self) -> HashMap<String, String>;
 }
+
+pub trait QueryOptions {
+    fn to_string(&self) -> String;
+}

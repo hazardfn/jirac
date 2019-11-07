@@ -4,6 +4,7 @@
 pub use crate::v2::application_role::*;
 pub use crate::v2::component::*;
 pub use crate::v2::group::*;
+pub use crate::v2::issue::*;
 pub use crate::v2::item::*;
 pub use crate::v2::pagination::*;
 pub use crate::v2::user::*;
@@ -21,5 +22,6 @@ mod pagination;
 pub mod application_role;
 pub mod component;
 pub mod group;
+pub mod issue;
 pub mod user;
 pub mod version;
