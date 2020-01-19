@@ -88,22 +88,6 @@ impl ::std::fmt::Display for Error {
 }
 
 impl ::std::error::Error for Error {
-    fn description(&self) -> &str {
-        use crate::Error::*;
-
-        match *self {
-            Http(ref e) => e.description(),
-            IO(ref e) => e.description(),
-            Serde(ref e) => e.description(),
-            Fault { .. } => "Jira client error",
-            Forbidden => "Forbidden",
-            PreconditionFailed => "PreconditionFailed",
-            Unauthorized => "Unauthorized",
-            MethodNotAllowed => "MethodNotAllowed",
-            NotFound => "NotFound",
-        }
-    }
-
     fn cause(&self) -> Option<&dyn ::std::error::Error> {
         use crate::Error::*;
 

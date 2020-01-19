@@ -44,25 +44,21 @@ impl Client {
     }
 
     /// Add request headers before sending your request
-    pub fn add_headers(self, headers: HashMap<&'static str, String>) -> Self {
-        let mut s = self.clone();
-        let mut h = self.headers;
+    pub fn add_headers(&mut self, headers: HashMap<&'static str, String>) {
+        let mut h = self.headers.clone();
 
         h = headers.iter().fold(h, |mut acc, (k, v)| {
             acc.insert(*k, HeaderValue::from_str(v).unwrap());
             acc
         });
 
-        s.headers = h;
-        s
+        self.headers = h;
     }
 
     /// Add a single header given a string value
-    pub fn add_header(mut self, header: &'static str, value: String) -> Self {
+    pub fn add_header(&mut self, header: &'static str, value: String) {
         self.headers
             .insert(header, HeaderValue::from_str(&value).unwrap());
-
-        self
     }
 
     /// Add query string arguments before sending your request

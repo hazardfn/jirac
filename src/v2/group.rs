@@ -1,4 +1,4 @@
-//! Represents a group a user belongs to
+//! Represents a paginated list of users by group
 
 // ============================================================================
 // Use
@@ -58,7 +58,9 @@ pub struct Group {
 }
 
 impl Group {
-    /// Fetches a user by username
+    /// Fetches a paginated list of users inside a given group name. For more
+    /// info consult the api docs:
+    /// https://docs.atlassian.com/software/jira/docs/api/REST/8.2.6/#api/2/group-getUsersFromGroup
     pub fn from_name<G>(
         c: &Client,
         name: G,
