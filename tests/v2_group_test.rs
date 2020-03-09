@@ -9,7 +9,7 @@ extern crate jirac;
 use jirac::v2::Group;
 use jirac::Client;
 use jirac::Credentials;
-use mockito::mock;
+use mockito::{mock, Matcher};
 use std::fs;
 
 // ============================================================================
@@ -23,11 +23,17 @@ fn test_get_member() {
     let _m = mock("GET", "/rest/api/2/group/member")
         .with_status(200)
         .with_header("content-type", "application/json")
+        .match_query(Matcher::AllOf(vec![
+            Matcher::UrlEncoded("includeInactiveUsers".into(), "false".into()),
+            Matcher::UrlEncoded("maxResults".into(), "50".into()),
+            Matcher::UrlEncoded("groupname".into(), "group1".into()),
+            Matcher::UrlEncoded("startAt".into(), "0".into())
+          ]))
         .with_body(result)
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let c = Group::from_name(&client, "group1", None, None).unwrap();

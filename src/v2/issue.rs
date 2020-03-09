@@ -8,7 +8,8 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::v2::{Pagination, User};
+use crate::v2::{Attachment, Component, Changelog, IssueType, Pagination};
+use crate::v2::{Project, Resolution, TimeTracking, User, Version, Watches};
 use crate::Client;
 use crate::Response;
 use crate::{Deserialize, Serialize};
@@ -120,59 +121,84 @@ impl QueryOptions for IssueUpdateHistory {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Changelog {
-    /// A list of changes
+pub struct IssueFields {
+    /// The issue type
+    #[serde(default, rename = "issuetype")]
+    pub issue_type: Option<IssueType>,
+
+    /// Components belonging to the issue
     #[serde(default)]
-    pub histories: Vec<History>,
-}
+    pub components: Vec<Component>,
 
-impl Default for Changelog {
-    fn default() -> Self {
-        Changelog { histories: vec![] }
-    }
-}
+    /// Time logged on the issue
+    #[serde(rename = "timespent", default)]
+    pub time_spent: i64,
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct History {
-    /// The author of a change
-    pub author: User,
+    /// Original estimate logged on the issue
+    #[serde(rename = "timeoriginalestimate", default)]
+    pub time_original_estimate: i64,
 
-    /// When the change was made
+    /// Description of the issue
     #[serde(default)]
-    pub created: String,
+    pub description: String,
 
-    /// A list of items changed including previous and new values
+    /// Project issue is part of
     #[serde(default)]
-    pub items: Vec<HistoryItem>,
-}
+    pub project: Option<Project>,
+    
+    /// Fix versions assigned to the issue
+    #[serde(rename = "fixVersions", default)]
+    pub fix_versions: Vec<Version>,
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct HistoryItem {
-    /// Name of field changed
+    /// Aggregate time spent on the issue
+    #[serde(rename = "aggregatetimespent", default)]
+    pub aggregate_time_spent: i64,
+
+    /// Resolution
     #[serde(default)]
-    pub field: String,
+    pub resolution: Option<Resolution>,
 
-    /// What the field was changed from in its object form.
-    /// Depending on what field this was you may be able to deserialize it
-    /// further but that would have to be done inside your application where
-    /// you are able to determine the context.
+    /// Time tracking information (time spent, overall estimate etc.)
     #[serde(default)]
-    pub from: ::serde_json::Value,
+    pub timetracking: Option<TimeTracking>,
 
-    /// What the field was changed from in string form.
-    #[serde(rename = "fromString", default)]
-    pub from_string: String,
-
-    /// What the field was changed to in its object form.
-    /// Depending on what field this was you may be able to deserialize it
-    /// futher but that would have to be done inside your application where you
-    /// are able to determine the context.
+    /// A list of attachments in the issue.
     #[serde(default)]
-    pub to: ::serde_json::Value,
+    pub attachment: Vec<Attachment>,
 
-    /// What the field was changed to in string form.
-    #[serde(rename = "toString", default)]
-    pub to_string: String,
+    /// Aggregated time estimate in seconds
+    #[serde(rename = "aggregatetimeestimate", default)]
+    pub aggregate_time_estimate: i64,
+
+    /// Date the issue was resolved (put into a resolution status)
+    /// in the format: "2020-03-09T20:40:15.922+0000"
+    #[serde(rename = "resolutiondate", default)]
+    pub resolution_date: String,
+
+    /// Work ratio
+    #[serde(rename = "workratio", default)]
+    pub work_ratio: i64,
+
+    /// Summary of the issue
+    #[serde(default)]
+    pub summary: String,
+
+    /// Date the issue was last viewed in the format:
+    /// "2020-03-09T20:40:15.922+0000"
+    #[serde(rename = "lastViewed", default)]
+    pub last_viewed: String,
+
+    /// Watcher details (how many people are watching this issue etc.)
+    #[serde(default)]
+    pub watches: Option<Watches>,
+
+    /// Creator of the issue
+    #[serde(default)]
+    pub creator: Option<User>,
+
+    /// Flatten
+    #[serde(default, flatten)]
+    pub others: BTreeMap<String, ::serde_json::Value>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -189,10 +215,14 @@ pub struct Issue {
     #[serde(default)]
     pub id: String,
 
-    /// Fields inside the issue, contains a lot of information including
-    /// custom fields
-    #[serde(default)]
-    pub fields: BTreeMap<String, ::serde_json::Value>,
+    /// Fields inside the issue supported by this library, if you are looking
+    /// for custom data or otherwise can't find what you need check the others
+    /// key
+    pub fields: IssueFields,
+
+    /// Anything not covered will be flattened for access here
+    #[serde(flatten, default)]
+    pub others: BTreeMap<String, ::serde_json::Value>,
 
     /// A chronical of the changes made to the issue.
     #[serde(default)]
@@ -240,6 +270,13 @@ impl std::fmt::Display for Issue {
     }
 }
 
+impl std::fmt::Display for IssueFields {
+    // This trait requires fmt with this signature
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        writeln!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
+    }
+}
+
 // ============================================================================
 // Private
 // ============================================================================
@@ -267,8 +304,6 @@ mod tests {
     fn test_deserialize_results() {
         let results =
             fs::read_to_string("tests/assets/v2/issue.json").expect("Unable to read in JSON file");
-        let issue: Issue = serde_json::from_str(&results).unwrap();
-
-        println!("{}", issue);
+        let _issue: Issue = serde_json::from_str(&results).unwrap();
     }
 }

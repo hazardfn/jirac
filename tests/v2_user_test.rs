@@ -10,7 +10,7 @@ use jirac::v2::{User, UserExpand};
 use jirac::Client;
 use jirac::Credentials;
 use jirac::Resp;
-use mockito::mock;
+use mockito::{mock, Matcher};
 use std::fs;
 
 // ============================================================================
@@ -24,11 +24,15 @@ fn test_get_user() {
     let _m = mock("GET", "/rest/api/2/user")
         .with_status(200)
         .with_header("content-type", "application/json")
+        .match_query(Matcher::AllOf(vec![
+            Matcher::UrlEncoded("username".into(), "fred".into()),
+            Matcher::UrlEncoded("expand".into(), "applicationRoles,groups".into())
+          ]))
         .with_body(result)
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let e = vec![UserExpand::ApplicationRoles, UserExpand::Groups];

@@ -29,7 +29,7 @@ fn test_get_from_key() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let a = ApplicationRole::from_key(&client, "1").unwrap();
@@ -49,7 +49,7 @@ fn test_get() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let a = ApplicationRole::all(&client).unwrap();
@@ -71,7 +71,7 @@ fn test_put_with_key() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     assert_eq!(a.update(&client, None).unwrap().data.key, "jira-software");
@@ -93,7 +93,7 @@ fn test_put_with_key_and_options() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     assert_eq!(
@@ -116,7 +116,7 @@ fn test_put_bulk() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     assert_eq!(
@@ -144,7 +144,7 @@ fn test_put_with_key_unauthorized() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     match a.update(&client, None) {
@@ -166,7 +166,7 @@ fn test_put_with_key_precondition_failed() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     match a.update(&client, None) {
@@ -188,7 +188,7 @@ fn test_put_with_key_forbidden() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     match a.update(&client, None) {

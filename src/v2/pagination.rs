@@ -15,11 +15,11 @@ use std::collections::HashMap;
 pub struct Pagination {
     /// REST API link to group
     #[serde(rename = "startAt", default)]
-    pub start_at: usize,
+    pub start_at: i64,
 
     /// Name of the group
     #[serde(rename = "maxResults", default)]
-    pub max_results: usize,
+    pub max_results: i64,
 
     /// URL to next page
     #[serde(rename = "nextPage", default)]
@@ -27,7 +27,7 @@ pub struct Pagination {
 
     /// Total groups
     #[serde(default)]
-    pub total: usize,
+    pub total: i64,
 
     /// Is the last page
     #[serde(default)]
@@ -35,7 +35,7 @@ pub struct Pagination {
 }
 
 impl Pagination {
-    pub fn new(start: usize, max: usize) -> Pagination {
+    pub fn new(start: i64, max: i64) -> Pagination {
         Pagination {
             start_at: start,
             max_results: max,
@@ -50,7 +50,7 @@ impl Pagination {
             None
         } else {
             Some(Pagination {
-                start_at: self.start_at + self.max_results,
+                start_at: self.start_at + (self.max_results - 1),
                 max_results: self.max_results,
                 is_last: false,
                 total: 0,
@@ -94,7 +94,7 @@ mod tests {
         p = p.next().unwrap();
 
         assert_eq!(p.max_results, 2);
-        assert_eq!(p.start_at, 4);
+        assert_eq!(p.start_at, 3);
     }
 
     #[test]

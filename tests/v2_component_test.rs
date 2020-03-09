@@ -27,7 +27,7 @@ fn test_get_from_id() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let c = Component::from_id(&client, "1").unwrap();

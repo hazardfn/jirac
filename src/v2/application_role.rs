@@ -52,15 +52,15 @@ pub struct ApplicationRole {
 
     /// Number of seats
     #[serde(rename = "numberOfSeats", default)]
-    pub number_of_seats: usize,
+    pub number_of_seats: i64,
 
     /// Remaining seats
     #[serde(rename = "remainingSeats", default)]
-    pub remaining_seats: usize,
+    pub remaining_seats: i64,
 
     /// User count
     #[serde(rename = "userCount", default)]
-    pub user_count: usize,
+    pub user_count: i64,
 
     /// User count description
     #[serde(rename = "userCountDescription", default)]

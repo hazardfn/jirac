@@ -125,10 +125,10 @@ impl Client {
         let req = self.client.request(method, &url);
         let builder = match self.credentials {
             Credentials::Basic(ref user, ref pass) => req
-                .basic_auth(user.to_owned(), Some(pass.to_owned()))
-                .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
-                .headers(self.headers.clone()),
-        };
+                .basic_auth(user.to_owned(), Some(pass.to_owned())),
+            Credentials::OAuth(ref token) => req
+                .bearer_auth(token)
+        }.header(CONTENT_TYPE, HeaderValue::from_static("application/json")).headers(self.headers.clone());
 
         let mut res = match body {
             Some(body) => builder.body(body).send()?,

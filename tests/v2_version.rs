@@ -27,7 +27,7 @@ fn test_get() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
 
     let c = Version::from_id(&client, "1").unwrap();
@@ -47,7 +47,7 @@ fn test_create() {
         .create();
 
     let url = &mockito::server_url();
-    let creds = Credentials::new("test", "test").unwrap();
+    let creds = Credentials::new_basic("test", "test").unwrap();
     let client = Client::new(url, creds);
     let version: Version = serde_json::from_str(&result).unwrap();
 

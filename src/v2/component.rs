@@ -59,7 +59,7 @@ pub struct Component {
 
     /// The id of the project the component is assigned to
     #[serde(rename = "projectId", default)]
-    pub project_id: usize,
+    pub project_id: i64,
 }
 
 impl Component {

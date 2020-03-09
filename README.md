@@ -72,9 +72,8 @@ use jirac::v2::{UserExpand, User};
 use jirac::Resp;
 
 pub fn main() {
-    // Only basic auth is supported at the moment
     let url = "https://whereisyourjira.com";
-    let credentials = Credentials::new("username", "password").unwrap();
+    let credentials = Credentials::new_basic("username", "password").unwrap();
     let client = Client::new(&url, credentials);
 
     // Let's expand all the fields for fun

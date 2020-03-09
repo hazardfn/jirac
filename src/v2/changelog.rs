@@ -1,29 +1,31 @@
-//! Some fields in Jira have a common strucure, we use this module to
-//! deserialize them into their respective types
+//! A representation of JIRA's changelog format
 
 // ============================================================================
 // Use
 // ============================================================================
+use crate::v2::History;
 use crate::{Deserialize, Serialize};
 
 // ============================================================================
 // Public Structures
 // ============================================================================
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Item {
-    /// Number of items in the list
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Changelog {
+    /// A list of changes
     #[serde(default)]
-    pub size: i64,
+    pub histories: Vec<History>
+}
 
-    /// Generic list of items
-    #[serde(default)]
-    pub items: ::serde_json::Value,
+impl Default for Changelog {
+    fn default() -> Self {
+        Changelog { histories: vec![] }
+    }
 }
 
 // ============================================================================
 // Trait Implementations
 // ============================================================================
-impl std::fmt::Display for Item {
+impl std::fmt::Display for Changelog {
     // This trait requires fmt with this signature
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         writeln!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
