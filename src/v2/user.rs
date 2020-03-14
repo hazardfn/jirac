@@ -8,7 +8,6 @@ use crate::Client;
 use crate::Options;
 use crate::Response;
 use crate::{Deserialize, Serialize};
-use serde_json;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 

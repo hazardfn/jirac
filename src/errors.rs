@@ -6,7 +6,6 @@
 use reqwest::Error as HttpError;
 use reqwest::StatusCode;
 use serde::Deserialize;
-use serde_json;
 use serde_json::error::Error as SerdeError;
 use std::collections::BTreeMap;
 use std::io::Error as IoError;

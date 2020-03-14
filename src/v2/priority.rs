@@ -1,4 +1,4 @@
-//! A representation of JIRA's issue type format
+//! Represents a ticket priority in the JIRA system
 
 // ============================================================================
 // Use
@@ -10,49 +10,44 @@ use crate::{Deserialize, Serialize};
 // ============================================================================
 // Public Structures
 // ============================================================================
-#[derive(Deserialize, Serialize, Debug)]
-pub struct IssueType {
-    /// The link to this issue type
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Priority {
+    /// REST API link to the priority
     #[serde(rename = "self", default)]
     pub self_link: String,
 
-    /// The ID of this issue type
-    #[serde(default)]
-    pub id: String,
+    /// Status colour for the priority
+    #[serde(rename = "statusColor", default)]
+    pub status_colour: String,
 
-    /// A description of the issue type
+    /// Priority description
     #[serde(default)]
     pub description: String,
 
-    /// URL to the issue type's icon
+    /// URL to icon of the status
     #[serde(rename = "iconUrl", default)]
     pub icon_url: String,
 
-    /// Name of the issue type
+    /// Name of the status
     #[serde(default)]
     pub name: String,
 
-    /// Is the issue a subtask?
+    /// ID of the status
     #[serde(default)]
-    pub subtask: bool,
-
-    /// Avatar id
-    #[serde(rename = "avatarId", default)]
-    pub avatar_id: i64
+    pub id: String,
 }
 
-impl IssueType {
-    /// Fetches an issue type given the id of the issue type. For more info
-    /// consult the api docs:
-    /// https://docs.atlassian.com/software/jira/docs/api/REST/8.2.6/#api/2/issuetype-getIssueType
+impl Priority {
+    /// Fetches a priority object given its ID. For more info consult the api docs:
+    /// https://docs.atlassian.com/software/jira/docs/api/REST/8.2.6/#api/2/priority-getPriority
     pub fn from_id<I>(
         c: &Client,
         id: I,
-    ) -> Response<IssueType>
+    ) -> Response<Priority>
     where
         I: Into<String>,
     {
-        let url = format!("api/2/issuetype/{}", id.into());
+        let url = format!("api/2/priority/{}", id.into());
         c.get(&url)
     }
 }
@@ -60,7 +55,7 @@ impl IssueType {
 // ============================================================================
 // Trait Implementations
 // ============================================================================
-impl std::fmt::Display for IssueType {
+impl std::fmt::Display for Priority {
     // This trait requires fmt with this signature
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         writeln!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
@@ -78,16 +73,13 @@ mod tests {
     #[test]
     fn test_deserialize_results() {
         let results =
-            fs::read_to_string("tests/assets/v2/issue_type.json").expect("Unable to read in JSON file");
-        let it: IssueType = serde_json::from_str(&results).unwrap();
+            fs::read_to_string("tests/assets/v2/priority.json").expect("Unable to read in JSON file");
+        let p: Priority = serde_json::from_str(&results).unwrap();
 
-        assert_eq!(it.self_link, "http://localhost:8080/rest/api/2/issuetype/10003");
-        assert_eq!(it.id, "10003");
-        assert_eq!(it.description, "A task that needs to be done.");
-        assert_eq!(it.icon_url, "http://localhost:8080/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype");
-        assert_eq!(it.name, "Task");
-        assert_eq!(it.subtask, false);
-        assert_eq!(it.avatar_id, 10318);
+        assert_eq!(p.self_link, "http://www.example.com/jira/rest/api/2/priority/3");
+        assert_eq!(p.status_colour, "#009900");
+        assert_eq!(p.description, "Major loss of function.");
+        assert_eq!(p.icon_url, "http://www.example.com/jira/images/icons/priorities/major.png");
+        assert_eq!(p.name, "Major");
     }
 }
-

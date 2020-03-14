@@ -8,8 +8,10 @@
 // ============================================================================
 // Use
 // ============================================================================
-use crate::v2::{Attachment, Component, Changelog, IssueType, Pagination};
-use crate::v2::{Project, Resolution, TimeTracking, User, Version, Watches};
+use crate::v2::{Attachment, Component, Changelog, IssueType, IssueLink};
+use crate::v2::{PaginatedComments, PaginatedWorklog, Pagination, Priority};
+use crate::v2::{Progress, Project, Resolution, Status, TimeTracking, User};
+use crate::v2::{Version, Vote, Watches};
 use crate::Client;
 use crate::Response;
 use crate::{Deserialize, Serialize};
@@ -132,11 +134,11 @@ pub struct IssueFields {
 
     /// Time logged on the issue
     #[serde(rename = "timespent", default)]
-    pub time_spent: i64,
+    pub time_spent: Option<i64>,
 
     /// Original estimate logged on the issue
     #[serde(rename = "timeoriginalestimate", default)]
-    pub time_original_estimate: i64,
+    pub time_original_estimate: Option<i64>,
 
     /// Description of the issue
     #[serde(default)]
@@ -152,7 +154,7 @@ pub struct IssueFields {
 
     /// Aggregate time spent on the issue
     #[serde(rename = "aggregatetimespent", default)]
-    pub aggregate_time_spent: i64,
+    pub aggregate_time_spent: Option<i64>,
 
     /// Resolution
     #[serde(default)]
@@ -168,16 +170,16 @@ pub struct IssueFields {
 
     /// Aggregated time estimate in seconds
     #[serde(rename = "aggregatetimeestimate", default)]
-    pub aggregate_time_estimate: i64,
+    pub aggregate_time_estimate: Option<i64>,
 
     /// Date the issue was resolved (put into a resolution status)
     /// in the format: "2020-03-09T20:40:15.922+0000"
     #[serde(rename = "resolutiondate", default)]
-    pub resolution_date: String,
+    pub resolution_date: Option<String>,
 
     /// Work ratio
     #[serde(rename = "workratio", default)]
-    pub work_ratio: i64,
+    pub work_ratio: Option<i64>,
 
     /// Summary of the issue
     #[serde(default)]
@@ -186,7 +188,7 @@ pub struct IssueFields {
     /// Date the issue was last viewed in the format:
     /// "2020-03-09T20:40:15.922+0000"
     #[serde(rename = "lastViewed", default)]
-    pub last_viewed: String,
+    pub last_viewed: Option<String>,
 
     /// Watcher details (how many people are watching this issue etc.)
     #[serde(default)]
@@ -195,6 +197,83 @@ pub struct IssueFields {
     /// Creator of the issue
     #[serde(default)]
     pub creator: Option<User>,
+
+    /// Subtasks underneath the issue
+    #[serde(default)]
+    pub subtasks: Vec<Issue>,
+
+    /// Date the issue was created in format: "2020-03-08T14:49:58.599+0000"
+    #[serde(default)]
+    pub created: String,
+
+    /// User who reported the issue
+    #[serde(default)]
+    pub reporter: Option<User>,
+
+    /// Aggregated progress based on time estimation in the ticket
+    #[serde(rename = "aggregateprogress", default)]
+    pub aggregate_progress: Option<Progress>,
+
+    /// Priority assigned to the issue
+    #[serde(default)]
+    pub priority: Option<Priority>,
+
+    /// A list of labels assigned to the issue
+    #[serde(default)]
+    pub labels: Vec<String>,
+
+    /// Environment description
+    #[serde(default)]
+    pub environment: Option<String>,
+
+    /// Time estimate in seconds
+    #[serde(rename = "timeestimate", default)]
+    pub time_estimate: Option<i64>,
+
+    /// Original estimated time in seconds
+    #[serde(rename = "aggregatetimeoriginalestimate", default)]
+    pub aggregate_time_original_estimate: Option<i64>,
+
+    /// A list of versions attributed to the issue
+    #[serde(default)]
+    pub versions: Vec<Version>,
+
+    /// Due date of the issue
+    #[serde(rename = "duedate", default)]
+    pub due_date: Option<String>,
+
+    /// Progress on an issue
+    #[serde(default)]
+    pub progress: Option<Progress>,
+
+    /// Paginated comments
+    #[serde(default)]
+    pub comment: Option<PaginatedComments>,
+
+    /// Links to other issues.
+    #[serde(rename = "issuelinks", default)]
+    pub issue_links: Vec<IssueLink>,
+
+    /// Votes on the issue.
+    #[serde(default)]
+    pub votes: Option<Vote>,    
+
+    /// A list of worklogs tied to the issue.
+    #[serde(default)]
+    pub worklog: Option<PaginatedWorklog>,
+
+    /// Person assigned to the issue.
+    #[serde(default)]
+    pub assignee: Option<User>,
+
+    /// Date time the issue was last updated in the format: 
+    /// "2020-03-10T16:27:20.772+0000"
+    #[serde(default)]
+    pub updated: String,
+
+    /// Status of the issue
+    #[serde(default)]
+    pub status: Option<Status>,
 
     /// Flatten
     #[serde(default, flatten)]
@@ -226,7 +305,7 @@ pub struct Issue {
 
     /// A chronical of the changes made to the issue.
     #[serde(default)]
-    pub changelog: Changelog,
+    pub changelog: Option<Changelog>,
 }
 
 impl Issue {
